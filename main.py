@@ -55,6 +55,8 @@ def is_close(a, b):
 def button_pressed(pin):
     global use_offboard, double_press
 
+    # this handler gets triggered once per button press and release,
+    # so we store a flag to skip every second trigger
     if double_press:
         double_press = False
         return
@@ -64,8 +66,6 @@ def button_pressed(pin):
     use_offboard = not use_offboard
     print(f"Button on {pin} pressed, changing sensor to {"offboard" if use_offboard else "onboard"}")
 
-# Creates an Interrupt Request (IRQ) when a Falling Edge is detected on the button Pin.
-# A falling edge is a drop in voltage from HIGH to LOW.
 button.irq(trigger=machine.Pin.IRQ_FALLING, handler=button_pressed)
 
 while True:
