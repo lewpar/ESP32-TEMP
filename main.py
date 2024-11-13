@@ -3,6 +3,8 @@ import machine # type: ignore
 import time # type: ignore
 import dht # type: ignore
 
+PIN_PIR_SENSOR = 35
+
 PIN_BUZZER = 32
 
 PIN_LED_GREEN = 33
@@ -15,7 +17,10 @@ PIN_BUTTON = 14
 use_offboard = True
 double_press = False
 
+pir_sensor = machine.Pin(PIN_PIR_SENSOR, machine.Pin.IN)
+
 buzzer = machine.PWM(machine.Pin(PIN_BUZZER))
+buzzer.deinit()
 
 led_green = machine.Pin(PIN_LED_GREEN, machine.Pin.OUT)
 led_orange = machine.Pin(PIN_LED_ORANGE, machine.Pin.OUT)
@@ -95,6 +100,12 @@ def buzz(frequency: int, duration_ms: int, break_ms: int):
 
 button.irq(trigger=machine.Pin.IRQ_FALLING, handler=button_pressed)
 
+def pir_sensed(pin):
+    print("Received PIR SENSATION.")
+    #buzz(1000, 250, 1)
+
+pir_sensor.irq(trigger=machine.Pin.IRQ_RISING, handler=pir_sensed)
+
 while True:
     temp = get_temp()
 
@@ -106,9 +117,9 @@ while True:
         led_green.off()
         led_orange.on()
         led_red.off()
-        buzz(1000, 100, 250)
+        #buzz(1000, 100, 250)
     elif temp > 25:
         led_green.off()
         led_orange.off()
         led_red.on()
-        buzz(1000, 100, 50)
+        #buzz(1000, 100, 50)
