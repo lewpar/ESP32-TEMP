@@ -1,7 +1,7 @@
-import esp32
-import machine
-import time
-import dht
+import esp32 # type: ignore
+import machine # type: ignore
+import time # type: ignore
+import dht # type: ignore
 
 PIN_BUZZER = 32
 
@@ -102,7 +102,6 @@ while True:
         led_green.on()
         led_orange.off()
         led_red.off()
-        buzz(1000, 100, 500)
     elif temp > 24 and temp <= 25:
         led_green.off()
         led_orange.on()
@@ -112,4 +111,4 @@ while True:
         led_green.off()
         led_orange.off()
         led_red.on()
-        buzz(1000, 100, 100)
+        buzz(1000, 100, 50)

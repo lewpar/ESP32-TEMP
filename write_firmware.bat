@@ -1,1 +1,1 @@
-py -m esptool --chip esp32 --port COM4 write_flash -z 0x1000 ESP32-FIRMWARE.bin
+py -m esptool --chip esp32 --port COM4 write_flash -z 0x1000 ESP32-FIRMWARE-1.24.0.bin
