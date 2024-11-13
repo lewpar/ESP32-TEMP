@@ -1,11 +1,10 @@
-import esp32 # type: ignore
 import machine # type: ignore
 import time # type: ignore
-import dht # type: ignore
 import urequests # type: ignore
 import ujson # type: ignore
 import gc # type: ignore
 
+from lib.tsense import TSense
 from lib.dotenv import DotEnv
 
 PIN_PIR_SENSOR = 35
@@ -22,6 +21,9 @@ PIN_BUTTON = 14
 use_offboard = True
 double_press = False
 
+last_temp = 0
+last_offboard_temp = 0
+
 pir_sensor = machine.Pin(PIN_PIR_SENSOR, machine.Pin.IN)
 
 buzzer = machine.PWM(machine.Pin(PIN_BUZZER))
@@ -33,56 +35,11 @@ led_red = machine.Pin(PIN_LED_RED, machine.Pin.OUT)
 
 button = machine.Pin(PIN_BUTTON)
 
-# DHT 11 - Temp / Humidity Sensor
-temp_sensor = dht.DHT11(machine.Pin(PIN_TEMP_SENSOR, machine.Pin.IN))
+SUPA_API_URL = DotEnv.get('SUPABASE_API_URL')
+SUPA_API_KEY = DotEnv.get('SUPABASE_API_KEY')
 
-last_temp = 0
-last_offboard_temp = 0
-
-def to_celcius(input: int):
-    return (input - 32.0) / 1.8
-
-def get_onboard_temp():
-    """
-    Gets the temperature from the ESP32's internal sensor.
-
-    :return: The temperature in fahrenheit.
-    """
-    return esp32.raw_temperature()
-
-def get_offboard_temp():
-    """
-    Gets the temperature from the DHT11 sensor.
-
-    :return: The temperature in celcius.
-    """
-    temp_sensor.measure() 
-    return temp_sensor.temperature()
-
-def get_temp():
-    global last_temp, last_offboard_temp, use_offboard
-
-    onboard_temp = to_celcius(get_onboard_temp())
-    offboard_temp = get_offboard_temp()
-
-    if not is_close(last_temp, onboard_temp):
-        print(f"Onboard temperature changed from {last_temp} to {onboard_temp}.")
-        last_temp = onboard_temp
-        send_temp_reading(offboard_temp, "internal")
-
-    if not is_close(last_offboard_temp, offboard_temp):
-        print(f"Offboard temperature changed from {last_offboard_temp} to {offboard_temp}.")
-        last_offboard_temp = offboard_temp
-        send_temp_reading(offboard_temp, "external")
-
-    return offboard_temp if use_offboard else onboard_temp
-
-def is_close(a, b):
-    """
-    Used to calculate if floating point numbers are the same using an epsilon.
-    """
-    epsilon = 0.01
-    return abs(a - b) < epsilon
+def temp_changed(temp_old: float, temp_new: float):
+    print(f"Temperature changed from {temp_old} to {temp_new}")
 
 def button_pressed(pin):
     global use_offboard, double_press
@@ -123,33 +80,51 @@ def send_temp_reading(temp, type):
     response = urequests.post(url=SUPA_API_URL, headers=headers, data=json)
     print(f"Done {response.status_code}")
 
-button.irq(trigger=machine.Pin.IRQ_FALLING, handler=button_pressed)
-
 def pir_sensed(pin):
     print("Received PIR SENSATION.")
     #buzz(1000, 250, 1)
 
-pir_sensor.irq(trigger=machine.Pin.IRQ_RISING, handler=pir_sensed)
+def main():
+    button.irq(trigger=machine.Pin.IRQ_FALLING, handler=button_pressed)
+    pir_sensor.irq(trigger=machine.Pin.IRQ_RISING, handler=pir_sensed)
 
-SUPA_API_URL = DotEnv.get('SUPABASE_API_URL')
-SUPA_API_KEY = DotEnv.get('SUPABASE_API_KEY')
+    tsense = TSense(PIN_TEMP_SENSOR)
+    tsense.on_temp_changed = temp_changed
 
-while True:
-    temp = get_temp()
+    while True:
+        temp = tsense.get_temp(use_external=use_offboard, use_fahrenheit=False)
 
-    if temp <= 24:
-        led_green.on()
-        led_orange.off()
-        led_red.off()
-    elif temp > 24 and temp <= 25:
-        led_green.off()
-        led_orange.on()
-        led_red.off()
-        #buzz(1000, 100, 250)
-    elif temp > 25:
-        led_green.off()
-        led_orange.off()
-        led_red.on()
-        #buzz(1000, 100, 50)
-        
+        print(f"Got temp: {temp}")
+
+        if temp <= 24:
+            led_green.on()
+            led_orange.off()
+            led_red.off()
+        elif temp > 24 and temp <= 25:
+            led_green.off()
+            led_orange.on()
+            led_red.off()
+            #buzz(1000, 100, 250)
+        elif temp > 25:
+            led_green.off()
+            led_orange.off()
+            led_red.on()
+            #buzz(1000, 100, 50)
+            
+        gc.collect()
+
+try:
+    main()
+except Exception as ex:
+    print(ex)
+finally:
+    print("Disabling sensors..")
+    # Disable all of the sensors
+    button.irq(handler=None)
+    pir_sensor.irq(handler=None)
+    buzzer.deinit()
+    led_green.off()
+    led_orange.off()
+    led_red.off()
+    print("Done")
     gc.collect()
