@@ -94,8 +94,6 @@ def main():
     while True:
         temp = tsense.get_temp(use_external=use_offboard, use_fahrenheit=False)
 
-        print(f"Got temp: {temp}")
-
         if temp <= 24:
             led_green.on()
             led_orange.off()
