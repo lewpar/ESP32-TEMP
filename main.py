@@ -2,9 +2,12 @@ import esp32 # type: ignore
 import machine # type: ignore
 import time # type: ignore
 import dht # type: ignore
-import network
+import network # type: ignore
+import urequests # type: ignore
+import ujson # type: ignore
+import gc # type: ignore
 
-from dotenv import DotEnv # type: ignore
+from dotenv import DotEnv
 
 PIN_PIR_SENSOR = 35
 
@@ -66,10 +69,12 @@ def get_temp():
     if not is_close(last_temp, onboard_temp):
         print(f"Onboard temperature changed from {last_temp} to {onboard_temp}.")
         last_temp = onboard_temp
+        send_temp_reading(offboard_temp, "internal")
 
     if not is_close(last_offboard_temp, offboard_temp):
         print(f"Offboard temperature changed from {last_offboard_temp} to {offboard_temp}.")
         last_offboard_temp = offboard_temp
+        send_temp_reading(offboard_temp, "external")
 
     return offboard_temp if use_offboard else onboard_temp
 
@@ -101,6 +106,24 @@ def buzz(frequency: int, duration_ms: int, break_ms: int):
     buzzer.deinit()
     time.sleep_ms(break_ms)
 
+def send_temp_reading(temp, type):
+    reading = {
+        "type": type,
+        "reading": temp,
+        "unit": "celcius"
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "apiKey": SUPA_API_KEY
+    }
+
+    print("Sending temp reading to database..")
+    json = ujson.dumps(reading)
+    print(json)
+    response = urequests.post(url=SUPA_API_URL, headers=headers, data=json)
+    print(f"Done {response.status_code}")
+
 button.irq(trigger=machine.Pin.IRQ_FALLING, handler=button_pressed)
 
 def pir_sensed(pin):
@@ -109,10 +132,12 @@ def pir_sensed(pin):
 
 pir_sensor.irq(trigger=machine.Pin.IRQ_RISING, handler=pir_sensed)
 
-
 DotEnv.load('.')
+
 DotEnv.ensure('WIFI_SSID')
 DotEnv.ensure('WIFI_PASS')
+DotEnv.ensure('SUPABASE_API_URL')
+DotEnv.ensure('SUPABASE_API_KEY')
 
 WIFI_SSID = DotEnv.get('WIFI_SSID')
 WIFI_PASS = DotEnv.get('WIFI_PASS')
@@ -120,6 +145,9 @@ WIFI_PASS = DotEnv.get('WIFI_PASS')
 wifi = network.WLAN(network.STA_IF)
 wifi.active(True)
 wifi.connect(WIFI_SSID, WIFI_PASS)
+
+SUPA_API_URL = DotEnv.get('SUPABASE_API_URL')
+SUPA_API_KEY = DotEnv.get('SUPABASE_API_KEY')
 
 while not wifi.isconnected():
     print("Connecting..")
@@ -145,5 +173,7 @@ while wifi.isconnected():
         led_orange.off()
         led_red.on()
         #buzz(1000, 100, 50)
+        
+    gc.collect()
 
 print(f"Lost connection to {WIFI_SSID} network")
