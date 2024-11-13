@@ -2,6 +2,9 @@ import esp32 # type: ignore
 import machine # type: ignore
 import time # type: ignore
 import dht # type: ignore
+import network
+
+from dotenv import DotEnv # type: ignore
 
 PIN_PIR_SENSOR = 35
 
@@ -106,7 +109,26 @@ def pir_sensed(pin):
 
 pir_sensor.irq(trigger=machine.Pin.IRQ_RISING, handler=pir_sensed)
 
-while True:
+
+DotEnv.load('.')
+DotEnv.ensure('WIFI_SSID')
+DotEnv.ensure('WIFI_PASS')
+
+WIFI_SSID = DotEnv.get('WIFI_SSID')
+WIFI_PASS = DotEnv.get('WIFI_PASS')
+
+wifi = network.WLAN(network.STA_IF)
+wifi.active(True)
+wifi.connect(WIFI_SSID, WIFI_PASS)
+
+while not wifi.isconnected():
+    print("Connecting..")
+    time.sleep_ms(1000)
+
+if wifi.isconnected():
+    print(f"Connected to {WIFI_SSID} network.")
+
+while wifi.isconnected():
     temp = get_temp()
 
     if temp <= 24:
@@ -123,3 +145,5 @@ while True:
         led_orange.off()
         led_red.on()
         #buzz(1000, 100, 50)
+
+print(f"Lost connection to {WIFI_SSID} network")
