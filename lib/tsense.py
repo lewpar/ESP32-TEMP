@@ -5,11 +5,13 @@ import machine
 class TSense:
     on_temp_changed: function
     temp_old: float
+    use_external: bool
 
     def __init__(self, sensor_pin = 0):
         if sensor_pin:
             self.sensor_external = dht.DHT11(machine.Pin(sensor_pin, machine.Pin.IN))
         self.temp_old = 0.0
+        self.use_external = False
 
     def __to_celcius(self, input: int):
         return (input - 32.0) / 1.8
@@ -30,6 +32,8 @@ class TSense:
 
         :return: The temperature in celcius. (Set use_fahrenheit parameter for fahrenheit)
         """
+
+        self.use_external = use_external
 
         temp_new: float
 

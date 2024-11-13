@@ -79,7 +79,7 @@ def send_temp_reading(temp, type):
 
 def temp_changed(sensor: TSense, temp_old: float, temp_new: float):
     print(f"Temperature changed from {temp_old} to {temp_new}")
-    send_temp_reading(temp_new, "external" if sensor.sensor_external else "internal")
+    send_temp_reading(temp_new, "external" if sensor.use_external else "internal")
 
 def pir_sensed(pin):
     print("Received PIR signal.")
