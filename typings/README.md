@@ -1,0 +1,1 @@
+These stubs are from the [micropython stubs](https://github.com/Josverl/micropython-stubs) repository with a few minor adjustments to make intellisense happy.
