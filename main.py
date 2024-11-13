@@ -2,7 +2,6 @@ import esp32 # type: ignore
 import machine # type: ignore
 import time # type: ignore
 import dht # type: ignore
-import network # type: ignore
 import urequests # type: ignore
 import ujson # type: ignore
 import gc # type: ignore
@@ -132,31 +131,10 @@ def pir_sensed(pin):
 
 pir_sensor.irq(trigger=machine.Pin.IRQ_RISING, handler=pir_sensed)
 
-DotEnv.load('.')
-
-DotEnv.ensure('WIFI_SSID')
-DotEnv.ensure('WIFI_PASS')
-DotEnv.ensure('SUPABASE_API_URL')
-DotEnv.ensure('SUPABASE_API_KEY')
-
-WIFI_SSID = DotEnv.get('WIFI_SSID')
-WIFI_PASS = DotEnv.get('WIFI_PASS')
-
-wifi = network.WLAN(network.STA_IF)
-wifi.active(True)
-wifi.connect(WIFI_SSID, WIFI_PASS)
-
 SUPA_API_URL = DotEnv.get('SUPABASE_API_URL')
 SUPA_API_KEY = DotEnv.get('SUPABASE_API_KEY')
 
-while not wifi.isconnected():
-    print("Connecting..")
-    time.sleep_ms(1000)
-
-if wifi.isconnected():
-    print(f"Connected to {WIFI_SSID} network.")
-
-while wifi.isconnected():
+while True:
     temp = get_temp()
 
     if temp <= 24:
@@ -175,5 +153,3 @@ while wifi.isconnected():
         #buzz(1000, 100, 50)
         
     gc.collect()
-
-print(f"Lost connection to {WIFI_SSID} network")

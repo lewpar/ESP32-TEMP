@@ -1,5 +1,3 @@
-import os
-
 class DotEnv:
     _env_vars = {}
 
