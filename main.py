@@ -38,9 +38,6 @@ button = machine.Pin(PIN_BUTTON)
 SUPA_API_URL = DotEnv.get('SUPABASE_API_URL')
 SUPA_API_KEY = DotEnv.get('SUPABASE_API_KEY')
 
-def temp_changed(temp_old: float, temp_new: float):
-    print(f"Temperature changed from {temp_old} to {temp_new}")
-
 def button_pressed(pin):
     global use_offboard, double_press
 
@@ -80,9 +77,13 @@ def send_temp_reading(temp, type):
     response = urequests.post(url=SUPA_API_URL, headers=headers, data=json)
     print(f"Done {response.status_code}")
 
+def temp_changed(sensor: TSense, temp_old: float, temp_new: float):
+    print(f"Temperature changed from {temp_old} to {temp_new}")
+    send_temp_reading(temp_new, "external" if sensor.sensor_external else "internal")
+
 def pir_sensed(pin):
-    print("Received PIR SENSATION.")
-    #buzz(1000, 250, 1)
+    print("Received PIR signal.")
+    buzz(1000, 250, 1)
 
 def main():
     button.irq(trigger=machine.Pin.IRQ_FALLING, handler=button_pressed)

@@ -1,6 +1,8 @@
 import network # type: ignore
 import time # type: ignore
 
+import sys
+
 from lib.dotenv import DotEnv
 
 try:
@@ -38,3 +40,4 @@ try:
     print(f"Connected!")
 except Exception as ex:
     print(f"An exception occured: {ex}")
+    sys.exit()

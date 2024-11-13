@@ -40,7 +40,7 @@ class TSense:
             temp_new = esp32.raw_temperature() if use_fahrenheit else self.__to_celcius(esp32.raw_temperature())
 
         if not self.__is_close(self.temp_old, temp_new):
-            self.on_temp_changed(self.temp_old, temp_new)
+            self.on_temp_changed(self, self.temp_old, temp_new)
             self.temp_old = temp_new
 
         return temp_new
