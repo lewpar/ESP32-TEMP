@@ -1,5 +1,6 @@
 import network # type: ignore
 import time # type: ignore
+import urequests # type: ignore
 
 import sys
 
@@ -37,7 +38,12 @@ try:
         if wifi_tracker >= wifi_timeout:
             raise Exception(f"Failed to connect to {WIFI_SSID}: Timed out")
 
-    print(f"Connected!")
+    print(f"Connected to network, testing internet connection..")
+
+    response = urequests.get(url="https://cyberbilby.com/")
+    if not response == 200:
+        raise Exception("Network connection test failed.")
+    
 except Exception as ex:
     print(f"An exception occured: {ex}")
     sys.exit()
