@@ -511,7 +511,7 @@ class PWM:
     """
 
     def __init__(self, dest, *, freq=0, duty=0, duty_u16=0, duty_ns=0, invert=False) -> None: ...
-    def init(self, *, freq, duty_u16, duty_ns) -> None:
+    def init(self, *, freq=0, duty_u16=0, duty_ns=0) -> None:
         """
         Modify settings for the PWM object.  See the above constructor for details
         about the parameters.

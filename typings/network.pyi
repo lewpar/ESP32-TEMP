@@ -34,6 +34,16 @@ For example::
     s.close()
 """
 
+STA_IF = None
+"""
+Sets the network interface to Station (STA)
+"""
+
+AP_IF = None
+"""
+Sets the network interface to Access Point (AP)
+"""
+
 # source version: v1.24.0-preview
 # origin module:: repos/micropython/docs/library/network.rst
 # + module: network.WLAN.rst

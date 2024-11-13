@@ -7,7 +7,7 @@ import urequests # type: ignore
 import ujson # type: ignore
 import gc # type: ignore
 
-from dotenv import DotEnv
+from lib.dotenv import DotEnv
 
 PIN_PIR_SENSOR = 35
 
@@ -97,7 +97,7 @@ def button_pressed(pin):
     double_press = True
 
     use_offboard = not use_offboard
-    print(f"Button on {pin} pressed, changing sensor to {"offboard" if use_offboard else "onboard"}")
+    print(f"Button on {pin} pressed, changing sensor to {'offboard' if use_offboard else 'onboard'}")
 
 
 def buzz(frequency: int, duration_ms: int, break_ms: int):
