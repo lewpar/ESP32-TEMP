@@ -40,9 +40,10 @@ try:
 
     print(f"Connected to network, testing internet connection..")
 
-    response = urequests.get(url="https://cyberbilby.com/")
-    if not response == 200:
-        raise Exception("Network connection test failed.")
+    response = urequests.get(url="http://http.thetruthhurts.me/")
+
+    if not response.status_code == 200:
+        raise Exception(f"Network connection test failed, got response: {response.text}")
     
 except Exception as ex:
     print(f"An exception occured: {ex}")
