@@ -37,8 +37,6 @@ try:
             # Convert it to a readable hex format
             uid_s = uidToString(uid)
 
-            print(uid_s)
-
             # Check if the hex uid exists in the whitelist
             if uid_s in allowed_uids:
                 print("Access granted.")
