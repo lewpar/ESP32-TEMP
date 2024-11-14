@@ -5,8 +5,47 @@ import urequests # type: ignore
 import sys
 
 from lib.dotenv import DotEnv
+from lib import mfrc522
+
+allowed_uids = [ "AC030AE1" ]
+
+def zfill(input, width):
+    return '0' * (width - len(input)) + input
+
+def uidToString(uid):
+    s = ""
+    for i in uid:
+        s = s + zfill(hex(i)[2:], 2).upper()
+    return s.upper()
 
 try:
+
+    card_reader = mfrc522.MFRC522(sck=18,mosi=23,miso=19,rst=22,cs=21)
+
+    print("Waiting for access card..")
+
+    # Loop until a valid card is scanned
+    while True:
+        # Wait for card to be scanned
+        (stat, _) = card_reader.request(card_reader.REQIDL)
+
+        # Check if the card scanned correctly
+        if stat == card_reader.OK:
+            # Read the UID from the card
+            (_, uid) = card_reader.SelectTagSN()
+        
+            # Convert it to a readable hex format
+            uid_s = uidToString(uid)
+
+            print(uid_s)
+
+            # Check if the hex uid exists in the whitelist
+            if uid_s in allowed_uids:
+                print("Access granted.")
+                break
+
+            print("Access denied.")
+
     # Load all the environment variables from the .env file in current directory.
     DotEnv.load(".")
 
