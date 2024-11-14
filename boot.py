@@ -10,16 +10,21 @@ from lib import mfrc522
 allowed_uids = [ "AC030AE1" ]
 
 def zfill(input, width):
+    """
+    Pads the input with leading zero's until it meets the desired width.
+    """
     return '0' * (width - len(input)) + input
 
 def uidToString(uid):
+    """
+    Converts an array of decimal values to a readable hexadecimal string.
+    """
     s = ""
     for i in uid:
         s = s + zfill(hex(i)[2:], 2).upper()
     return s.upper()
 
 try:
-
     card_reader = mfrc522.MFRC522(sck=18,mosi=23,miso=19,rst=22,cs=21)
 
     print("Waiting for access card..")
